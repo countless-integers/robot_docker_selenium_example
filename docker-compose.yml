@@ -1,0 +1,35 @@
+version: '3'
+services:
+  app:
+    networks:
+      flask_selenium_test: {}
+    build: ./src
+    command: python3 app.py
+    ports:
+      - "5000:5000"
+    volumes:
+        - ./src:/www
+
+  selenium:
+    networks:
+      flask_selenium_test: {}
+    image: selenium/standalone-chrome-debug
+    ports:
+      - "4444:4444"
+
+  tests:
+    networks:
+      flask_selenium_test: {}
+    build: ./tests
+    # http://localhost:4444/wd/hub/status
+    command: sleep 10; robot -d /reports acceptance
+    volumes:
+      - ./tests:/tests
+      - ./reports:/reports
+    depends_on:
+      - app
+      - selenium
+
+networks:
+  flask_selenium_test:
+    driver: bridge
